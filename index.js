@@ -1,15 +1,16 @@
 const { Client } = require('pg');
 const inquirer = require('inquirer');
+require('dotenv').config();
 
 // Database connection configuration
 const client = new Client({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'employee_tracker',
-  password: 'password',
-  port: 5432,
-});
-
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DB_DATABASE,
+    password: process.env.DB_PASSWORD,
+    port: process.env.DB_PORT,
+  });
+  
 // Connect to the database
 client.connect();
 
