@@ -10,7 +10,7 @@ const client = new Client({
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT,
   });
-  
+
 // Connect to the database
 client.connect();
 
@@ -28,6 +28,11 @@ const mainMenu = () => {
         'Add a role',
         'Add an employee',
         'Update an employee role',
+        'Update employee managers',
+        'View employees by manager',
+        'View employees by department',
+        'Delete departments, roles, and employees',
+        'View the total utilized budget of a department',
         'Exit'
       ]
     }
@@ -54,6 +59,21 @@ const mainMenu = () => {
       case 'Update an employee role':
         updateEmployeeRole();
         break;
+      case 'Update employee managers':
+        updateEmployeeManager();
+        break;
+      case 'View employees by manager':
+        viewEmployeesByManager();
+        break;
+      case 'View employees by department':
+        viewEmployeesByDepartment();
+        break;
+      case 'Delete departments, roles, and employees':
+        deleteEntity();
+        break;
+      case 'View the total utilized budget of a department':
+        viewDepartmentBudget();
+        break; 
       case 'Exit':
         client.end();
         break;
@@ -179,5 +199,121 @@ const updateEmployeeRole = () => {
   });
 };
 
+const updateEmployeeManager = () => {
+    inquirer.prompt([
+      {
+        name: 'employee_id',
+        type: 'input',
+        message: 'Enter the ID of the employee you want to update:'
+      },
+      {
+        name: 'manager_id',
+        type: 'input',
+        message: 'Enter the new manager ID for the employee:'
+      }
+    ]).then(answer => {
+      client.query('UPDATE employee SET manager_id = $1 WHERE id = $2', [answer.manager_id, answer.employee_id], (err, res) => {
+        if (err) throw err;
+        console.log('Employee manager updated successfully');
+        mainMenu();
+      });
+    });
+  };
+  
+  const viewEmployeesByManager = () => {
+    inquirer.prompt([
+      {
+        name: 'manager_id',
+        type: 'input',
+        message: 'Enter the manager ID to view their employees:'
+      }
+    ]).then(answer => {
+      client.query('SELECT * FROM employee WHERE manager_id = $1', [answer.manager_id], (err, res) => {
+        if (err) throw err;
+        console.table(res.rows);
+        mainMenu();
+      });
+    });
+  };
+  
+  const viewEmployeesByDepartment = () => {
+    inquirer.prompt([
+      {
+        name: 'department_id',
+        type: 'input',
+        message: 'Enter the department ID to view its employees:'
+      }
+    ]).then(answer => {
+      client.query(`
+        SELECT e.id, e.first_name, e.last_name, r.title, d.name AS department, r.salary, e.manager_id
+        FROM employee e
+        JOIN role r ON e.role_id = r.id
+        JOIN department d ON r.department_id = d.id
+        WHERE d.id = $1
+      `, [answer.department_id], (err, res) => {
+        if (err) throw err;
+        console.table(res.rows);
+        mainMenu();
+      });
+    });
+  };
+  
+  const deleteEntity = () => {
+    inquirer.prompt([
+      {
+        type: 'list',
+        name: 'entity',
+        message: 'What would you like to delete?',
+        choices: ['Department', 'Role', 'Employee']
+      },
+      {
+        name: 'id',
+        type: 'input',
+        message: 'Enter the ID of the entity you want to delete:'
+      }
+    ]).then(answer => {
+      let query = '';
+      switch (answer.entity) {
+        case 'Department':
+          query = 'DELETE FROM department WHERE id = $1';
+          break;
+        case 'Role':
+          query = 'DELETE FROM role WHERE id = $1';
+          break;
+        case 'Employee':
+          query = 'DELETE FROM employee WHERE id = $1';
+          break;
+      }
+      client.query(query, [answer.id], (err, res) => {
+        if (err) throw err;
+        console.log(`${answer.entity} deleted successfully`);
+        mainMenu();
+      });
+    });
+  };
+  
+  const viewDepartmentBudget = () => {
+    inquirer.prompt([
+      {
+        name: 'department_id',
+        type: 'input',
+        message: 'Enter the department ID to view its total utilized budget:'
+      }
+    ]).then(answer => {
+      client.query(`
+        SELECT d.name AS department, SUM(r.salary) AS total_budget
+        FROM employee e
+        JOIN role r ON e.role_id = r.id
+        JOIN department d ON r.department_id = d.id
+        WHERE d.id = $1
+        GROUP BY d.name
+      `, [answer.department_id], (err, res) => {
+        if (err) throw err;
+        console.table(res.rows);
+        mainMenu();
+      });
+    });
+  };
+  
 // Start the application
 mainMenu();
