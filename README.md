@@ -1,7 +1,7 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
   ## Description
-  this is a basic app that will allow a business to track employees by sorting by Department and Role and allow you to see base salaryt and managment.
+  this is a basic app that will allow a business to track employees by sorting by Department and Role and allow you to see base salary and management.
   
   ## Table of Contents
   * [Installation](#installation)
@@ -15,6 +15,7 @@
   ## Installation
   download this through github and run in in terminal with node.js
   git hub repository: https://github.com/Mar10w/employee-tracker
+  YouTube link for demonstration: https://youtu.be/JVJA4CWtFcU
   
   ## Usage
   this could be helpful for any small business
